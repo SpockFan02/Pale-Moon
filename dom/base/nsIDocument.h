@@ -122,6 +122,7 @@ class GlobalObject;
 class NodeFilter;
 class NodeIterator;
 class ProcessingInstruction;
+class Selection;
 class StyleSheetList;
 class SVGDocument;
 class Touch;
@@ -722,6 +723,8 @@ public:
    * Return the root element for this document.
    */
   Element* GetRootElement() const;
+
+  mozilla::dom::Selection* GetSelection(mozilla::ErrorResult& aRv);
 
   virtual nsViewportInfo GetViewportInfo(const mozilla::ScreenIntSize& aDisplaySize) = 0;
 
@@ -2451,6 +2454,8 @@ public:
   already_AddRefed<nsDOMCaretPosition>
     CaretPositionFromPoint(float aX, float aY);
 
+  Element* GetScrollingElement();
+
   // QuerySelector and QuerySelectorAll already defined on nsINode
   nsINodeList* GetAnonymousNodes(Element& aElement);
   Element* GetAnonymousElementByAttribute(Element& aElement,
@@ -2537,6 +2542,16 @@ public:
 
   bool DidFireDOMContentLoaded() const { return mDidFireDOMContentLoaded; }
   
+  void SetUserHasInteracted(bool aUserHasInteracted)
+  {
+    mUserHasInteracted = aUserHasInteracted;
+  }
+
+  bool UserHasInteracted()
+  {
+    return mUserHasInteracted;
+  }
+
   bool HasScriptsBlockedBySandbox();
   
   bool InlineScriptAllowedByCSP();
@@ -2892,6 +2907,9 @@ protected:
 
   // Our live MediaQueryLists
   PRCList mDOMMediaQueryLists;
+
+  // Whether the user has interacted with the document or not:
+  bool mUserHasInteracted;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsIDocument, NS_IDOCUMENT_IID)

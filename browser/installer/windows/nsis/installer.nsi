@@ -82,7 +82,6 @@ VIAddVersionKey "OriginalFilename" "setup.exe"
 !insertmacro InitHashAppModelId
 !insertmacro IsHandlerForInstallDir
 !insertmacro IsPinnedToTaskBar
-!insertmacro IsUserAdmin
 !insertmacro LogDesktopShortcut
 !insertmacro LogQuickLaunchShortcut
 !insertmacro LogStartMenuShortcut
@@ -97,7 +96,6 @@ VIAddVersionKey "OriginalFilename" "setup.exe"
 !insertmacro UnloadUAC
 !insertmacro WriteRegStr2
 !insertmacro WriteRegDWORD2
-!insertmacro CheckIfRegistryKeyExists
 
 !include shared.nsh
 

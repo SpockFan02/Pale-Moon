@@ -53,7 +53,7 @@ MOZJPEG=62
 MOZPNG=10616
 MOZWEBP=043
 NSPR_VERSION=4
-NSPR_MINVER=4.13.0
+NSPR_MINVER=4.15.0
 NSS_VERSION=3
 
 dnl Set the minimum version of toolkit libs used by mozilla
@@ -1887,7 +1887,19 @@ MOZILLA_SYMBOLVERSION=`$PYTHON $srcdir/python/mozbuild/mozbuild/milestone.py --t
 AC_DEFINE_UNQUOTED(MOZILLA_VERSION,"$MOZILLA_VERSION")
 AC_DEFINE_UNQUOTED(MOZILLA_VERSION_U,$MOZILLA_VERSION)
 AC_DEFINE_UNQUOTED(MOZILLA_UAVERSION,"$MOZILLA_UAVERSION")
+AC_DEFINE_UNQUOTED(MOZILLA_UAVERSION_U,$MOZILLA_UAVERSION)
 AC_SUBST(MOZILLA_SYMBOLVERSION)
+AC_SUBST(MOZILLA_UAVERSION)
+AC_SUBST(MOZILLA_UAVERSION_U)
+
+dnl ========================================================
+dnl Get Firefox compatibility version we claim in our UA
+dnl ========================================================
+MOZILLA_COMPATVERSION=`tail -n 1 "$_topsrcdir"/config/compatversion.txt 2>/dev/null || tail -1 "$_topsrcdir"/config/compatversion.txt`
+AC_DEFINE_UNQUOTED(MOZILLA_COMPATVERSION,"$MOZILLA_COMPATVERSION")
+AC_DEFINE_UNQUOTED(MOZILLA_COMPATVERSION_U,$MOZILLA_COMPATVERSION)
+AC_SUBST(MOZILLA_COMPATVERSION)
+AC_SUBST(MOZILLA_COMPATVERSION_U)
 
 MOZ_DOING_LTO(lto_is_enabled)
 
@@ -3534,7 +3546,7 @@ MOZ_ARG_WITH_BOOL(system-nss,
     _USE_SYSTEM_NSS=1 )
 
 if test -n "$_USE_SYSTEM_NSS"; then
-    AM_PATH_NSS(3.28.5.1, [MOZ_NATIVE_NSS=1], [AC_MSG_ERROR([you don't have NSS installed or your version is too old])])
+    AM_PATH_NSS(3.31.1, [MOZ_NATIVE_NSS=1], [AC_MSG_ERROR([you don't have NSS installed or your version is too old])])
 fi
 
 if test -n "$MOZ_NATIVE_NSS"; then

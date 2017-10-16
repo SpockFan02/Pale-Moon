@@ -615,12 +615,19 @@ pref("gfx.layerscope.port", 23456);
 // This should be use to quickly find which slow paths are used by test cases.
 pref("gfx.perf-warnings.enabled", false);
 
-// 0 = Off, 1 = Full, 2 = Tagged Images Only.
+// 0 = Off, 1 = All Images, 2 = Tagged Images Only.
 // See eCMSMode in gfx/thebes/gfxPlatform.h
-pref("gfx.color_management.mode", 1);
+#ifdef XP_WIN
+pref("gfx.color_management.mode", 2);
 pref("gfx.color_management.display_profile", "");
 pref("gfx.color_management.rendering_intent", 0);
 pref("gfx.color_management.enablev4", true);
+#else
+pref("gfx.color_management.mode", 0);
+pref("gfx.color_management.display_profile", "");
+pref("gfx.color_management.rendering_intent", 0);
+pref("gfx.color_management.enablev4", false);
+#endif
 
 pref("gfx.downloadable_fonts.enabled", true);
 pref("gfx.downloadable_fonts.fallback_delay", 3000);
@@ -1276,8 +1283,11 @@ pref("dom.disable_window_open_feature.scrollbars",  false);
 pref("dom.disable_window_open_feature.resizable",   true);
 pref("dom.disable_window_open_feature.minimizable", false);
 pref("dom.disable_window_open_feature.status",      true);
+pref("dom.disable_window_showModalDialog",          true);
 
 pref("dom.allow_scripts_to_close_windows",          false);
+
+pref("dom.require_user_interaction_for_beforeunload", true);
 
 pref("dom.disable_open_during_load",                false);
 pref("dom.popup_maximum",                           20);
@@ -1542,11 +1552,12 @@ pref("network.http.redirection-limit", 20);
 // NOTE: support for "compress" has been disabled per bug 196406.
 // NOTE: separate values with comma+space (", "): see bug 576033
 pref("network.http.accept-encoding", "gzip, deflate");
+pref("network.http.accept-encoding.secure", "gzip, deflate, br");
 
 pref("network.http.pipelining"      , true);
-pref("network.http.pipelining.ssl"  , true); // disable pipelining over SSL
+pref("network.http.pipelining.ssl"  , true);
 pref("network.http.pipelining.abtest", false);
-pref("network.http.proxy.pipelining", false);
+pref("network.http.proxy.pipelining", false); // for old, broken proxies.
 
 // Max number of requests in the pipeline
 pref("network.http.pipelining.maxrequests" , 4);
@@ -2548,18 +2559,6 @@ pref("layout.frame_rate", -1);
 
 // pref to dump the display list to the log. Useful for debugging drawing.
 pref("layout.display-list.dump", false);
-
-// pref to control precision of the frame rate timer. When true,
-// we use a "precise" timer, which means each notification fires
-// Nms after the start of the last notification. That means if the
-// processing of the notification is slow, the timer can fire immediately
-// after we've just finished processing the last notification, which might
-// lead to starvation problems.
-// When false, we use a "slack" timer which fires Nms after the *end*
-// of the last notification. This can give less tight frame rates
-// but provides more time for other operations when the browser is
-// heavily loaded.
-pref("layout.frame_rate.precise", false);
 
 // pref to control whether layout warnings that are hit quite often are enabled
 pref("layout.spammy_warnings.enabled", true);
@@ -4321,6 +4320,7 @@ pref("gfx.xrender.enabled",true);
 // Whether to disable the automatic detection and use of direct2d.
 pref("gfx.direct2d.disabled", false);
 pref("gfx.direct2d.use1_1", true);
+pref("gfx.direct2d.allow-fallback", false);
 
 // Whether to attempt to enable Direct2D regardless of automatic detection or
 // blacklisting

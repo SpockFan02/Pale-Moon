@@ -73,6 +73,8 @@ class Element;
 class EventHandlerNonNull;
 class OnErrorEventHandlerNonNull;
 template<typename T> class Optional;
+class OwningNodeOrString;
+template<typename> class Sequence;
 class Text;
 class TextOrElementOrDocument;
 struct DOMPointInit;
@@ -265,8 +267,12 @@ public:
   typedef mozilla::dom::DOMPointInit DOMPointInit;
   typedef mozilla::dom::DOMQuad DOMQuad;
   typedef mozilla::dom::DOMRectReadOnly DOMRectReadOnly;
+  typedef mozilla::dom::OwningNodeOrString OwningNodeOrString;
   typedef mozilla::dom::TextOrElementOrDocument TextOrElementOrDocument;
   typedef mozilla::ErrorResult ErrorResult;
+
+  template<class T>
+  using Sequence = mozilla::dom::Sequence<T>;
 
   NS_DECLARE_STATIC_IID_ACCESSOR(NS_INODE_IID)
 
@@ -619,7 +625,7 @@ public:
   {
     return InsertChildAt(aKid, GetChildCount(), aNotify);
   }
-  
+
   /**
    * Remove a child from this node.  This method handles calling UnbindFromTree
    * on the child appropriately.
@@ -782,7 +788,7 @@ public:
   virtual void* UnsetProperty(uint16_t aCategory,
                               nsIAtom *aPropertyName,
                               nsresult *aStatus = nullptr);
-  
+
   bool HasProperties() const
   {
     return HasFlag(NODE_HAS_PROPERTIES);
@@ -814,7 +820,7 @@ public:
   {
     return mParent;
   }
-  
+
   /**
    * Get the parent nsINode for this node if it is an Element.
    * @return the parent node
@@ -1104,7 +1110,7 @@ protected:
     }
     return nullptr;
   }
-  
+
 public:
   void GetTextContent(nsAString& aTextContent,
                       mozilla::ErrorResult& aError)
@@ -1159,7 +1165,7 @@ public:
   nsresult GetUserData(const nsAString& aKey, nsIVariant** aResult)
   {
     NS_IF_ADDREF(*aResult = GetUserData(aKey));
-  
+
     return NS_OK;
   }
 
@@ -1320,7 +1326,7 @@ private:
     NodeIsCCMarkedRoot,
     // Maybe set if this node is in black subtree.
     NodeIsCCBlackTree,
-    // Maybe set if the node is a root of a subtree 
+    // Maybe set if the node is a root of a subtree
     // which needs to be kept in the purple buffer.
     NodeIsPurpleRoot,
     // Set if the node has an explicit base URI stored
@@ -1609,6 +1615,7 @@ public:
   }
   nsINode* RemoveChild(nsINode& aChild, mozilla::ErrorResult& aError);
   already_AddRefed<nsINode> CloneNode(bool aDeep, mozilla::ErrorResult& aError);
+  bool IsSameNode(nsINode* aNode);
   bool IsEqualNode(nsINode* aNode);
   void GetNamespaceURI(nsAString& aNamespaceURI) const
   {
@@ -1654,6 +1661,11 @@ public:
   // ChildNode methods
   mozilla::dom::Element* GetPreviousElementSibling() const;
   mozilla::dom::Element* GetNextElementSibling() const;
+
+  void Before(const Sequence<OwningNodeOrString>& aNodes, ErrorResult& aRv);
+  void After(const Sequence<OwningNodeOrString>& aNodes, ErrorResult& aRv);
+  void ReplaceWith(const Sequence<OwningNodeOrString>& aNodes,
+                   ErrorResult& aRv);
   /**
    * Remove this node from its parent, if any.
    */
@@ -1662,6 +1674,9 @@ public:
   // ParentNode methods
   mozilla::dom::Element* GetFirstElementChild() const;
   mozilla::dom::Element* GetLastElementChild() const;
+
+  void Prepend(const Sequence<OwningNodeOrString>& aNodes, ErrorResult& aRv);
+  void Append(const Sequence<OwningNodeOrString>& aNodes, ErrorResult& aRv);
 
   void GetBoxQuads(const BoxQuadOptions& aOptions,
                    nsTArray<nsRefPtr<DOMQuad> >& aResult,

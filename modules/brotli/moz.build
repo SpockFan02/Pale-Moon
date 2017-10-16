@@ -21,4 +21,7 @@ UNIFIED_SOURCES += [
     'dec/state.c',
 ]
 
+# Disable dangerous optimizations for maximum compatibility
+CFLAGS += ['-DBROTLI_BUILD_PORTABLE']
+
 Library('brotli')
