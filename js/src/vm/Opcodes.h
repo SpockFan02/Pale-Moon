@@ -1462,7 +1462,15 @@
      *   Stack: =>
      */ \
     macro(JSOP_BACKPATCH,     149,"backpatch", NULL,      5,  0,  0,  JOF_JUMP) \
-    macro(JSOP_UNUSED150,     150,"unused150", NULL,      1,  0,  0,  JOF_BYTE) \
+    /*
+     * Pops the top two values 'lval' and 'rval' from the stack, then pushes
+     * the result of 'Math.pow(lval, rval)'.
+     *   Category: Operators
+     *   Type: Arithmetic Operators
+     *   Operands:
+     *   Stack: lval, rval => (lval ** rval)
+     */ \
+    macro(JSOP_POW,           150, "pow",     "**",       1,  2,  1, JOF_BYTE|JOF_ARITH) \
     \
     /*
      * Pops the top of stack value as 'v', sets pending exception as 'v',
@@ -1635,8 +1643,6 @@
      */ \
     macro(JSOP_GETXPROP,      195,"getxprop",    NULL,    5,  1,  1, JOF_ATOM|JOF_PROP|JOF_TYPESET) \
     \
-    macro(JSOP_UNUSED196,     196,"unused196",   NULL,    1,  0,  0, JOF_BYTE) \
-    \
     /*
      * Pops the top stack value as 'val' and pushes 'typeof val'.  Note that
      * this opcode isn't used when, in the original source code, 'val' is a
@@ -1647,9 +1653,21 @@
      *   Operands:
      *   Stack: val => (typeof val)
      */ \
-    macro(JSOP_TYPEOFEXPR,    197,"typeofexpr",  NULL,    1,  1,  1, JOF_BYTE|JOF_DETECTING) \
+    macro(JSOP_TYPEOFEXPR,    196,"typeofexpr",  NULL,    1,  1,  1, JOF_BYTE|JOF_DETECTING) \
     \
     /* Block-local scope support. */ \
+    /*
+     * Replaces the current block on the scope chain with a fresh block
+     * that copies all the bindings in the bock.  This operation implements the
+     * behavior of inducing a fresh block scope for every iteration of a
+     * for(let ...; ...; ...) loop, if any declarations induced by such a loop
+     * are captured within the loop.
+     *   Category: Variables and Scopes
+     *   Type: Block-local Scope
+     *   Operands:
+     *   Stack: =>
+     */ \
+    macro(JSOP_FRESHENBLOCKSCOPE,197,"freshenblockscope", NULL, 1, 0, 0, JOF_BYTE) \
     /*
      * Pushes block onto the scope chain.
      *   Category: Variables and Scopes
