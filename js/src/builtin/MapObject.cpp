@@ -1339,7 +1339,6 @@ MapObject::extract(CallReceiver call)
 uint32_t
 MapObject::size(JSContext* cx, HandleObject obj)
 {
-    MOZ_ASSERT(MapObject::is(obj));
     ValueMap& map = extract(obj);
     static_assert(sizeof(map.count()) <= sizeof(uint32_t),
                   "map count must be precisely representable as a JS number");
@@ -1365,8 +1364,6 @@ bool
 MapObject::get(JSContext* cx, HandleObject obj,
                HandleValue key, MutableHandleValue rval)
 {
-    MOZ_ASSERT(MapObject::is(obj));
-
     ValueMap& map = extract(obj);
     AutoHashableValueRooter k(cx);
 
@@ -1398,8 +1395,6 @@ MapObject::get(JSContext* cx, unsigned argc, Value* vp)
 bool
 MapObject::has(JSContext* cx, HandleObject obj, HandleValue key, bool* rval)
 {
-    MOZ_ASSERT(MapObject::is(obj));
-
     ValueMap& map = extract(obj);
     AutoHashableValueRooter k(cx);
 
@@ -1505,7 +1500,6 @@ bool
 MapObject::iterator(JSContext* cx, IteratorKind kind,
                     HandleObject obj, MutableHandleValue iter)
 {
-    MOZ_ASSERT(MapObject::is(obj));
     ValueMap& map = extract(obj);
     Rooted<JSObject*> iterobj(cx, MapIteratorObject::create(cx, obj, &map, kind));
     return iterobj && (iter.setObject(*iterobj), true);
@@ -1575,7 +1569,6 @@ MapObject::clear(JSContext* cx, unsigned argc, Value* vp)
 bool
 MapObject::clear(JSContext* cx, HandleObject obj)
 {
-    MOZ_ASSERT(MapObject::is(obj));
     ValueMap& map = extract(obj);
     if (!map.clear()) {
         js_ReportOutOfMemory(cx);
@@ -1951,12 +1944,35 @@ SetObject::is(HandleValue v)
     return v.isObject() && v.toObject().hasClass(&class_) && v.toObject().as<SetObject>().getPrivate();
 }
 
+bool
+SetObject::is(HandleObject o)
+{
+    return o->hasClass(&class_) && o->as<SetObject>().getPrivate();
+}
+
+ValueSet&
+SetObject::extract(HandleObject o)
+{
+    MOZ_ASSERT(o->hasClass(&SetObject::class_));
+    return *o->as<SetObject>().getData();
+}
+
 ValueSet&
 SetObject::extract(CallReceiver call)
 {
     MOZ_ASSERT(call.thisv().isObject());
     MOZ_ASSERT(call.thisv().toObject().hasClass(&SetObject::class_));
     return *static_cast<SetObject&>(call.thisv().toObject()).getData();
+}
+
+uint32_t
+SetObject::size(JSContext *cx, HandleObject obj)
+{
+    MOZ_ASSERT(SetObject::is(obj));
+    ValueSet &set = extract(obj);
+    static_assert(sizeof(set.count()) <= sizeof(uint32_t),
+                  "set count must be precisely representable as a JS number");
+    return set.count();
 }
 
 bool
@@ -1986,6 +2002,21 @@ SetObject::has_impl(JSContext* cx, const CallArgs& args)
     ValueSet& set = extract(args);
     ARG0_KEY(cx, args, key);
     args.rval().setBoolean(set.has(key));
+    return true;
+}
+
+bool
+SetObject::has(JSContext *cx, HandleObject obj, HandleValue key, bool *rval)
+{
+    MOZ_ASSERT(SetObject::is(obj));
+
+    ValueSet &set = extract(obj);
+    AutoHashableValueRooter k(cx);
+
+    if (!k.setValue(cx, key))
+        return false;
+
+    *rval = set.has(k);
     return true;
 }
 
@@ -2020,6 +2051,24 @@ SetObject::add(JSContext* cx, unsigned argc, Value* vp)
 }
 
 bool
+SetObject::delete_(JSContext *cx, HandleObject obj, HandleValue key, bool *rval)
+{
+    MOZ_ASSERT(SetObject::is(obj));
+
+    ValueSet &set = extract(obj);
+    AutoHashableValueRooter k(cx);
+
+    if (!k.setValue(cx, key))
+        return false;
+
+    if (!set.remove(k, rval)) {
+        js_ReportOutOfMemory(cx);
+        return false;
+    }
+    return true;
+}
+
+bool
 SetObject::delete_impl(JSContext* cx, const CallArgs& args)
 {
     MOZ_ASSERT(is(args.thisv()));
@@ -2040,6 +2089,16 @@ SetObject::delete_(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
     return CallNonGenericMethod<SetObject::is, SetObject::delete_impl>(cx, args);
+}
+
+bool
+SetObject::iterator(JSContext *cx, IteratorKind kind,
+                    HandleObject obj, MutableHandleValue iter)
+{
+    MOZ_ASSERT(SetObject::is(obj));
+    ValueSet &set = extract(obj);
+    Rooted<JSObject*> iterobj(cx, SetIteratorObject::create(cx, obj, &set, kind));
+    return iterobj && (iter.setObject(*iterobj), true);
 }
 
 bool
@@ -2078,6 +2137,18 @@ SetObject::entries(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
     return CallNonGenericMethod(cx, is, entries_impl, args);
+}
+
+bool
+SetObject::clear(JSContext *cx, HandleObject obj)
+{
+    MOZ_ASSERT(SetObject::is(obj));
+    ValueSet &set = extract(obj);
+    if (!set.clear()) {
+        js_ReportOutOfMemory(cx);
+        return false;
+    }
+    return true;
 }
 
 bool
@@ -2195,4 +2266,71 @@ JS::MapEntries(JSContext* cx, HandleObject obj, MutableHandleValue rval)
     CHECK_REQUEST(cx);
     assertSameCompartment(cx, rval);
     return MapObject::iterator(cx, MapObject::Entries, obj, rval);
+}
+
+JS_PUBLIC_API(JSObject *)
+JS::NewSetObject(JSContext *cx)
+{
+    return SetObject::create(cx);
+}
+
+JS_PUBLIC_API(uint32_t)
+JS::SetSize(JSContext *cx, HandleObject obj)
+{
+    CHECK_REQUEST(cx);
+    return SetObject::size(cx, obj);
+}
+
+JS_PUBLIC_API(bool)
+JS::SetHas(JSContext *cx, HandleObject obj, HandleValue key, bool *rval)
+{
+    CHECK_REQUEST(cx);
+    assertSameCompartment(cx, key);
+    return SetObject::has(cx, obj, key, rval);
+}
+
+JS_PUBLIC_API(bool)
+JS::SetDelete(JSContext *cx, HandleObject obj, HandleValue key, bool *rval)
+{
+    CHECK_REQUEST(cx);
+    assertSameCompartment(cx, key);
+    return SetObject::delete_(cx, obj, key, rval);
+}
+
+JS_PUBLIC_API(bool)
+JS::SetAdd(JSContext *cx, HandleObject obj,
+           HandleValue key)
+{
+    CHECK_REQUEST(cx);
+    assertSameCompartment(cx, key);
+    return SetObject::add(cx, obj, key);
+}
+
+JS_PUBLIC_API(bool)
+JS::SetClear(JSContext *cx, HandleObject obj)
+{
+    CHECK_REQUEST(cx);
+    return SetObject::clear(cx, obj);
+}
+
+JS_PUBLIC_API(bool)
+JS::SetKeys(JSContext *cx, HandleObject obj, MutableHandleValue rval)
+{
+    return SetValues(cx, obj, rval);
+}
+
+JS_PUBLIC_API(bool)
+JS::SetValues(JSContext *cx, HandleObject obj, MutableHandleValue rval)
+{
+    CHECK_REQUEST(cx);
+    assertSameCompartment(cx, rval);
+    return SetObject::iterator(cx, SetObject::Values, obj, rval);
+}
+
+JS_PUBLIC_API(bool)
+JS::SetEntries(JSContext *cx, HandleObject obj, MutableHandleValue rval)
+{
+    CHECK_REQUEST(cx);
+    assertSameCompartment(cx, rval);
+    return SetObject::iterator(cx, SetObject::Entries, obj, rval);
 }
