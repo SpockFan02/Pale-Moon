@@ -1115,6 +1115,45 @@ class IDLInterface(IDLObjectWithScope, IDLExposureMixins):
                     attr = fowardAttr
                     putForwards = attr.getExtendedAttribute("PutForwards")
 
+            # Check that the name of an [Alias] doesn't conflict with an
+            # interface member.
+            if member.isMethod():
+                for alias in member.aliases:
+                    if self.isOnGlobalProtoChain():
+                        raise WebIDLError("[Alias] must not be used on a "
+                                          "[Global] interface operation",
+                                          [member.location])
+                    if (member.getExtendedAttribute("Exposed") or
+                        member.getExtendedAttribute("ChromeOnly") or
+                        member.getExtendedAttribute("Pref") or
+                        member.getExtendedAttribute("Func") or
+                        member.getExtendedAttribute("AvailableIn") or
+                        member.getExtendedAttribute("CheckPermissions")):
+                        raise WebIDLError("[Alias] must not be used on a "
+                                          "conditionally exposed operation",
+                                          [member.location])
+                    if member.isStatic():
+                        raise WebIDLError("[Alias] must not be used on a "
+                                          "static operation",
+                                          [member.location])
+                    if member.isIdentifierLess():
+                        raise WebIDLError("[Alias] must not be used on an "
+                                          "identifierless operation",
+                                          [member.location])
+                    if member.isUnforgeable():
+                        raise WebIDLError("[Alias] must not be used on an "
+                                          "[Unforgeable] operation",
+                                          [member.location])
+                    for m in self.members:
+                        if m.identifier.name == alias:
+                            raise WebIDLError("[Alias=%s] has same name as "
+                                              "interface member" % alias,
+                                              [member.location, m.location])
+                        if m.isMethod() and alias in m.aliases:
+                            raise WebIDLError("duplicate [Alias=%s] definitions" %
+                                              alias,
+                                              [member.location, m.location])
+
         if (self.getExtendedAttribute("Pref") and
             self._exposureGlobalNames != set([self.parentScope.primaryGlobalName])):
             raise WebIDLError("[Pref] used on an interface that is not %s-only" %
@@ -3548,7 +3587,6 @@ class IDLAttribute(IDLInterfaceMember):
         self.maplikeOrSetlike = maplikeOrSetlike
         self.dependsOn = "Everything"
         self.affects = "Everything"
-        self.aliases = []
 
         if static and identifier.name == "prototype":
             raise WebIDLError("The identifier of a static attribute must not be 'prototype'",
@@ -4441,6 +4479,11 @@ class IDLMethod(IDLInterfaceMember, IDLScope):
                 raise WebIDLError("[Unscopable] is only allowed on non-static "
                                   "attributes and operations",
                                   [attr.location, self.location])
+        elif identifier == "Alias":
+            if not attr.hasValue():
+                raise WebIDLError("[Alias] takes an identifier or string",
+                                  [attr.location])
+            self._addAlias(attr.value())
         elif (identifier == "Throws" or
               identifier == "NewObject" or
               identifier == "ChromeOnly" or
