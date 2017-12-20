@@ -12447,7 +12447,7 @@ class CGForwardDeclarations(CGWrapper):
             # declared in the header.
             if d.interface.maplikeOrSetlikeOrIterable:
                 forwardDeclareForType(d.interface.maplikeOrSetlikeOrIterable.keyType)
-                forwardDeclareForType(d.interface.maplikeOrSetlikeOriterable.valueType)
+                forwardDeclareForType(d.interface.maplikeOrSetlikeOrIterable.valueType)
 
         # We just about always need NativePropertyHooks
         builder.addInMozillaDom("NativePropertyHooks", isStruct=True)
