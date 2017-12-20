@@ -254,6 +254,7 @@ WEBIDL_FILES = [
     'InterAppConnection.webidl',
     'InterAppConnectionRequest.webidl',
     'InterAppMessagePort.webidl',
+    'IterableIterator.webidl',
     'KeyAlgorithm.webidl',
     'KeyboardEvent.webidl',
     'KeyEvent.webidl',
@@ -629,7 +630,7 @@ WEBIDL_FILES += [
 if CONFIG['MOZ_DEBUG']:
     WEBIDL_FILES += ['TestInterfaceJS.webidl',
                      'TestInterfaceJSDictionaries.webidl',
-                     'TestInterfaceJSMaplikeSetlike.webidl']
+                     'TestInterfaceJSMaplikeSetlikeIterable.webidl']
 
 if CONFIG['MOZ_B2G_BT']:
     if CONFIG['MOZ_B2G_BT_API_V2']:
