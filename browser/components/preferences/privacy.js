@@ -232,7 +232,6 @@ var gPrivacyPane = {
           .forEach(function (aElement)
                    document.getElementById(aElement).disabled = disabled);
 
-      const Ci = Components.interfaces;
       // adjust the cookie controls status
       this.readAcceptCookies();
       let lifetimePolicy = document.getElementById("network.cookie.lifetimePolicy").value;
