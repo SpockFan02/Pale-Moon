@@ -504,7 +504,7 @@ nsContextMenu.prototype = {
       }
       else if (this.target instanceof HTMLVideoElement) {
         this.mediaURL = this.target.currentSrc || this.target.src;
-        // An HTMLVideoElement is always created when loading an ogg file
+        // Firefox always creates a HTMLVideoElement when loading an ogg file
         // directly. If the media is actually audio, be smarter and provide a
         // context menu with audio operations.
         if (this.target.readyState >= this.target.HAVE_METADATA &&
