@@ -503,3 +503,28 @@ let Printing = {
 }
 Printing.init();
 
+let MediaPlaybackListener = {
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIObserver]),
+
+  init() {
+    Services.obs.addObserver(this, "media-playback", false);
+    addEventListener("unload", () => {
+      MediaPlaybackListener.uninit();
+    });
+  },
+
+  uninit() {
+    Services.obs.removeObserver(this, "media-playback");
+  },
+
+  observe(subject, topic, data) {
+    if (topic === "media-playback") {
+      if (subject && subject.top == global.content) {
+        let name = "MediaPlayback:";
+        name += (data === "active") ? "Start" : "Stop";
+        sendAsyncMessage(name);
+      }
+    }
+  },
+};
+MediaPlaybackListener.init();
