@@ -1066,6 +1066,11 @@ static bool UseAudioChannelService()
   return Preferences::GetBool("media.useAudioChannelService");
 }
 
+static bool UseAudioChannelAPI()
+{
+  return Preferences::GetBool("media.useAudioChannelAPI");
+}
+
 void HTMLMediaElement::UpdatePreloadAction()
 {
   PreloadAction nextAction = PRELOAD_UNDEFINED;
@@ -2095,7 +2100,7 @@ HTMLMediaElement::HTMLMediaElement(already_AddRefed<mozilla::dom::NodeInfo>& aNo
     defaultVolume = 1.0;
   }
   SetVolume(defaultVolume, rv);
-  
+
   mAudioChannel = AudioChannelService::GetDefaultAudioChannel();
 
   mPaused.SetOuter(this);
@@ -4417,11 +4422,15 @@ nsresult HTMLMediaElement::UpdateChannelMuteState(AudioChannelState aCanPlay)
   // We have to mute this channel.
   if (aCanPlay == AUDIO_CHANNEL_STATE_MUTED && !(mMuted & MUTED_BY_AUDIO_CHANNEL)) {
     SetMutedInternal(mMuted | MUTED_BY_AUDIO_CHANNEL);
+    if (UseAudioChannelAPI()) {
     DispatchAsyncEvent(NS_LITERAL_STRING("mozinterruptbegin"));
+    }
   } else if (aCanPlay != AUDIO_CHANNEL_STATE_MUTED &&
              (mMuted & MUTED_BY_AUDIO_CHANNEL)) {
     SetMutedInternal(mMuted & ~MUTED_BY_AUDIO_CHANNEL);
+    if (UseAudioChannelAPI()) {
     DispatchAsyncEvent(NS_LITERAL_STRING("mozinterruptend"));
+    }
   }
 
   SuspendOrResumeElement(mMuted & MUTED_BY_AUDIO_CHANNEL, false);
