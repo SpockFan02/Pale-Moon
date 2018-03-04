@@ -836,7 +836,7 @@
             <!-- Pale Moon: new image icon method, see bug #305986 -->
             let req = browser.contentDocument.imageRequest;
             let sz = Services.prefs.getIntPref("browser.chrome.image_icons.max_size");
-            if (browser.contentDocument instanceof ImageDocument && 
+            if (browser.contentDocument instanceof ImageDocument &&
                 req && req.image) {
               if (Services.prefs.getBoolPref("browser.chrome.site_icons") && sz) {
                 try {
@@ -851,17 +851,17 @@
                   ctx.drawImage(browser.contentDocument.body.firstChild, 0, 0, w, h);
                   icon = canvas.toDataURL();
                 }
-                catch (e) { 
+                catch (e) {
                   <!-- Fallback method in case canvas method fails, restricted by sz -->
                   try {
-                  
+
                     if (req &&
                         req.image &&
                         req.image.width <= sz &&
                         req.image.height <= sz)
                       icon = browser.currentURI;
-                  } 
-                  catch (e) { 
+                  }
+                  catch (e) {
                     <!-- Both methods fail (very large or corrupt image): icon remains null -->
                   }
                 }
@@ -1975,7 +1975,7 @@
             // FIXME: Tabs must be sliding in from the left for this, or it'd unfocus
             // in the other direction! Disabled for now. Is there an easier way? :hover?
             // Is this even needed when resizing immediately?...
-            
+
             //if (Services.prefs.getBoolPref("browser.tabs.resize_immediately")) {
             //  if (this.selectedTab._tPos > 1) {
             //    let newPos = this.selectedTab._tPos - 1;
@@ -2386,7 +2386,7 @@
           <![CDATA[
           if (gNavToolbox.collapsed) {
             return this.mTabBox.selectedTab;
-          }         
+          }
           // Update the tab
           this.mTabBox.selectedTab = val;
           return val;
@@ -3171,6 +3171,36 @@
             tab.setAttribute("titlechanged", "true");
         ]]>
       </handler>
+      <handler event="DOMMediaPlaybackStarted">
+        <![CDATA[
+          if (!Services.prefs.getBoolPref("browser.tabs.showAudioPlayingIcon") ||
+              !event.isTrusted)
+            return;
+
+          var browser = event.originalTarget;
+          var tab = this.getTabForBrowser(browser);
+          if (!tab)
+            return;
+
+          tab.setAttribute("soundplaying", true);
+          this._tabAttrModified(tab, ["soundplaying"]);
+        ]]>
+      </handler>
+      <handler event="DOMMediaPlaybackStopped">
+        <![CDATA[
+          if (!Services.prefs.getBoolPref("browser.tabs.showAudioPlayingIcon") ||
+              !event.isTrusted)
+            return;
+
+          var browser = event.originalTarget;
+          var tab = this.getTabForBrowser(browser);
+          if (!tab)
+            return;
+
+          tab.removeAttribute("soundplaying");
+          this._tabAttrModified(tab, ["soundplaying"]);
+        ]]>
+      </handler>
     </handlers>
   </binding>
 
@@ -3573,7 +3603,7 @@
             // Locking is neither in effect nor needed, so let tabs expand normally.
             if (isEndTab && !this._hasTabTempMaxWidth)
               return;
-              
+
             // Resize immediately if preffed
             // XXX: we may want to make this a three-state pref to disable this early
             // exit if people prefer a mix of behavior (don't resize in overflow,
@@ -4581,10 +4611,17 @@
                      class="tab-icon-image"
                      role="presentation"
                      anonid="tab-icon"/>
+          <xul:image xbl:inherits="crashed,busy,soundplaying,pinned"
+                     class="tab-icon-overlay"
+                     class="tab-icon-overlay"
+                     role="presentation"/>
           <xul:label flex="1"
                      xbl:inherits="value=label,crop,accesskey,fadein,pinned,selected"
                      class="tab-text tab-label"
                      role="presentation"/>
+                     <xul:image xbl:inherits="soundplaying,pinned"
+                      class="tab-icon-sound"
+                      role="presentation"/>
           <xul:toolbarbutton anonid="close-button"
                              xbl:inherits="fadein,pinned,selected"
                              class="tab-close-button close-icon"/>
