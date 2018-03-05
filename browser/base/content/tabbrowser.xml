@@ -2915,20 +2915,20 @@
             event.preventDefault();
             return;
           }
-          var name, label;
+          var label;
           if (tab.mOverCloseButton) {
-            name = "tabs.closeTab.tooltip";
+            label = this.mStringBundle.getString("tabs.closeTab.tooltip");
           } else if (tab._overPlayingIcon) {
 
-            name = tab.linkedBrowser.audioMuted ?
+            var stringID = tab.linkedBrowser.audioMuted ?
 
               "tabs.mutedAudio.tooltip" :
               "tabs.playingAudio.tooltip";
-            else {
+            var key = document.getElementById("key_toggleMute");
+            var shortcut = ShortcutUtils.prettifyShortcut(key);
+            label = this.mStringBundle.getFormattedString(stringID, [shortcut]);
+          } else {
             label = tab.getAttribute("label");
-            }
-            if (name && !label) {
-              label = this.mStringBundle.getString(name);
             }
             event.target.setAttribute("label", label);
                                              tab.getAttribute("closetabtext") :
@@ -4741,7 +4741,7 @@
         let anonid = event.originalTarget.getAttribute("anonid");
         if ((anonid == "soundplaying-icon") ||
             ((anonid == "overlay-icon") && this.hasAttribute("soundplaying"))) {
-          this._toggleMuteAudio();
+          this.toggleMuteAudio();
         }
       ]]>
       </handler>
@@ -4853,7 +4853,7 @@
         ]]></body>
       </method>
 
-      <method name="_toggleMuteAudio">
+      <method name="toggleMuteAudio">
         <body>
         <![CDATA[
         let tabContainer = this.parentNode;
