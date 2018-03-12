@@ -31,8 +31,8 @@ tabbrowser {
 
 #alltabs-button { /* Pale Moon: Always show this button! (less jumpy UI) */
   visibility: visible !important;
-}
-
+} 
+ 
 #tabbrowser-tabs:not([overflow="true"])[using-closing-tabs-spacer] ~ #alltabs-button {
   visibility: hidden; /* temporary space to keep a tab's close button under the cursor */
 }
@@ -690,4 +690,8 @@ toolbarbutton[pmkit-button="true"] > .toolbarbutton-badge-container > .toolbarbu
 #main-window[inFullscreen] #global-notificationbox,
 #main-window[inFullscreen] #high-priority-global-notificationbox {
   visibility: collapse;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> parent of 5c63b4f53... Provide a visual indicator for tabs that are playing audio
