@@ -4621,7 +4621,7 @@
                      class="tab-icon-image"
                      role="presentation"
                      anonid="tab-icon"/>
-          <xul:image xbl:inherits="crashed,busy,soundplaying,pinned,muted"
+          <xul:image xbl:inherits="crashed,busy,soundplaying,pinned"
                      anonid="overlay-icon"
                      class="tab-icon-overlay"
                      role="presentation"/>
@@ -4629,7 +4629,7 @@
                      xbl:inherits="value=label,crop,accesskey,fadein,pinned,selected"
                      class="tab-text tab-label"
                      role="presentation"/>
-          <xul:image xbl:inherits="soundplaying,pinned,muted"
+          <xul:image xbl:inherits="soundplaying,pinned"
                      anonid="soundplaying-icon"
                      class="tab-icon-sound"
                      role="presentation"/>
@@ -4731,19 +4731,6 @@
       </handler>
       <handler event="mouseup">
         this.style.MozUserFocus = '';
-      </handler>
-      <handler event="click">
-      <![CDATA[
-        if (event.button != 0) {
-          return;
-        }
-
-        let anonid = event.originalTarget.getAttribute("anonid");
-        if ((anonid == "soundplaying-icon") ||
-            ((anonid == "overlay-icon") && this.hasAttribute("soundplaying"))) {
-          this.toggleMuteAudio();
-        }
-      ]]>
       </handler>
     </handlers>
   </binding>
@@ -4860,12 +4847,9 @@
           let browser = this.linkedBrowser;
           if (browser.audioMuted) {
             browser.unmute();
-            this.removeAttribute("muted");
           } else {
             browser.mute();
-            this.setAttribute("muted", "true");
           }
-          tabContainer.tabbrowser._tabAttrModified(this, ["muted"]);
         ]]>
         </body>
       </method>
